@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>3D Ray Tracing Demo</title>
+    <style>
+      :root {
+        --bg: #0a0f16;
+        --panel: rgba(10, 16, 24, 0.78);
+        --line: rgba(255, 255, 255, 0.12);
+        --text: #ecf3ff;
+        --muted: #97a6bc;
+        --accent: #ffd166;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at top, rgba(66, 135, 245, 0.18), transparent 36%),
+          radial-gradient(circle at 20% 80%, rgba(255, 209, 102, 0.12), transparent 28%),
+          linear-gradient(180deg, #09111d 0%, #04070d 100%);
+        color: var(--text);
+        font-family:
+          "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
+          sans-serif;
+      }
+
+      canvas {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+
+      .hud {
+        position: fixed;
+        top: 18px;
+        left: 18px;
+        width: min(360px, calc(100vw - 36px));
+        padding: 16px 18px;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: var(--panel);
+        backdrop-filter: blur(18px);
+        box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+        pointer-events: none;
+      }
+
+      .controls {
+        position: fixed;
+        top: 18px;
+        right: 18px;
+        width: min(340px, calc(100vw - 36px));
+        padding: 16px 18px;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: var(--panel);
+        backdrop-filter: blur(18px);
+        box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+      }
+
+      .controls h2 {
+        margin: 0 0 12px;
+        font-size: 16px;
+      }
+
+      .controls-grid {
+        display: grid;
+        gap: 12px;
+      }
+
+      .control {
+        display: grid;
+        gap: 6px;
+      }
+
+      .control-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .control input,
+      .control select,
+      .control button {
+        width: 100%;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text);
+      }
+
+      .control input[type="range"] {
+        appearance: none;
+        height: 8px;
+        padding: 0;
+      }
+
+      .control input[type="range"]::-webkit-slider-thumb {
+        appearance: none;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: var(--accent);
+        cursor: pointer;
+      }
+
+      .control select,
+      .control button {
+        padding: 10px 12px;
+        font-size: 13px;
+      }
+
+      .toggle-row {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text);
+        font-size: 13px;
+      }
+
+      .toggle input {
+        width: auto;
+      }
+
+      .control button {
+        cursor: pointer;
+        background: rgba(255, 209, 102, 0.12);
+      }
+
+      .hud h1 {
+        margin: 0 0 6px;
+        font-size: 20px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+      }
+
+      .hud p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.55;
+        font-size: 13px;
+      }
+
+      .stats {
+        margin-top: 12px;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .card {
+        padding: 10px 12px;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .label {
+        display: block;
+        font-size: 11px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .value {
+        display: block;
+        margin-top: 5px;
+        font-size: 16px;
+        color: var(--accent);
+      }
+
+      .footer {
+        position: fixed;
+        right: 18px;
+        bottom: 18px;
+        padding: 10px 14px;
+        border-radius: 999px;
+        background: rgba(10, 16, 24, 0.72);
+        border: 1px solid var(--line);
+        color: var(--muted);
+        font-size: 12px;
+        backdrop-filter: blur(14px);
+      }
+
+      .error {
+        position: fixed;
+        inset: 0;
+        display: none;
+        place-items: center;
+        padding: 24px;
+        background: rgba(4, 7, 13, 0.92);
+        z-index: 10;
+      }
+
+      .error.visible {
+        display: grid;
+      }
+
+      .error-box {
+        max-width: 560px;
+        padding: 24px;
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+      }
+
+      .error-box h2 {
+        margin: 0 0 10px;
+      }
+
+      .error-box p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="app"></canvas>
+
+    <section class="hud">
+      <h1 id="title">3D Ray Tracing Demo</h1>
+      <p id="description">
+        The scene sits inside an open box at the center, with diffuse, metal, glass, emissive surfaces, and a standalone teapot. Dragging always orbits around the box center so the target stays in view.
+      </p>
+      <div class="stats">
+        <div class="card">
+          <span class="label" id="samplesLabel">Samples</span>
+          <span class="value" id="sampleCount">0</span>
+        </div>
+        <div class="card">
+          <span class="label">FPS</span>
+          <span class="value" id="fps">0</span>
+        </div>
+      </div>
+    </section>
+
+    <aside class="controls">
+      <h2 id="controlsTitle">Live Controls</h2>
+      <div class="controls-grid">
+        <label class="control">
+          <span class="control-head"><span id="languageLabel">Language</span><span id="languageValue">English</span></span>
+          <select id="language">
+            <option value="en" selected>English</option>
+            <option value="zh-CN">中文</option>
+          </select>
+        </label>
+
+        <label class="control">
+          <span class="control-head"><span id="renderScaleLabel">Render Scale</span><span id="renderScaleValue">0.75x</span></span>
+          <input id="renderScale" type="range" min="0.4" max="1" step="0.05" value="0.75" />
+        </label>
+
+        <label class="control">
+          <span class="control-head"><span id="passesPerFrameLabel">Passes Per Frame</span><span id="passesPerFrameValue">1</span></span>
+          <input id="passesPerFrame" type="range" min="1" max="4" step="1" value="1" />
+        </label>
+
+        <label class="control">
+          <span class="control-head"><span id="sampleSpeedLabel">Sampling Speed</span><span id="sampleSpeedValue">1.00x</span></span>
+          <input id="sampleSpeed" type="range" min="0.1" max="2" step="0.05" value="1.00" />
+        </label>
+
+        <label class="control">
+          <span class="control-head"><span id="bounceLimitLabel">Bounce Limit</span><span id="bounceLimitValue">5</span></span>
+          <input id="bounceLimit" type="range" min="1" max="8" step="1" value="5" />
+        </label>
+
+        <label class="control">
+          <span class="control-head"><span id="fovLabel">Camera FOV</span><span id="fovValue">42°</span></span>
+          <input id="fov" type="range" min="28" max="70" step="1" value="42" />
+        </label>
+
+        <label class="control">
+          <span class="control-head"><span id="exposureLabel">Exposure</span><span id="exposureValue">1.00</span></span>
+          <input id="exposure" type="range" min="0.6" max="2.2" step="0.05" value="1.00" />
+        </label>
+
+        <label class="control">
+          <span class="control-head"><span id="lightIntensityLabel">Light Intensity</span><span id="lightIntensityValue">13.0</span></span>
+          <input id="lightIntensity" type="range" min="4" max="24" step="0.5" value="13.0" />
+        </label>
+
+        <div class="control">
+          <span class="control-head"><span id="lightTogglesLabel">Light Toggles</span><span id="lightTogglesValue">White / Red / Blue</span></span>
+          <div class="toggle-row">
+            <label class="toggle"><input id="whiteLightEnabled" type="checkbox" checked /><span id="whiteLightLabel">White</span></label>
+            <label class="toggle"><input id="redLightEnabled" type="checkbox" checked /><span id="redLightLabel">Red</span></label>
+            <label class="toggle"><input id="blueLightEnabled" type="checkbox" checked /><span id="blueLightLabel">Blue</span></label>
+          </div>
+        </div>
+
+        <label class="control">
+          <span class="control-head"><span id="skyStrengthLabel">Sky Strength</span><span id="skyStrengthValue">1.00</span></span>
+          <input id="skyStrength" type="range" min="0" max="2" step="0.05" value="1.00" />
+        </label>
+
+        <label class="control">
+          <span class="control-head"><span id="qualityPresetLabel">Preset</span><span id="qualityPresetValue">Balanced</span></span>
+          <select id="qualityPreset">
+            <option value="fast">Fast</option>
+            <option value="balanced" selected>Balanced</option>
+            <option value="quality">Quality</option>
+          </select>
+        </label>
+
+        <div class="control">
+          <button id="resetView" type="button">Reset View And Sampling</button>
+        </div>
+      </div>
+    </aside>
+
+    <div class="footer" id="footerText">WebGL2 Path Tracing • Progressive Accumulation</div>
+
+    <section class="error" id="errorPanel">
+      <div class="error-box">
+        <h2 id="errorTitle">This Demo Is Not Supported</h2>
+        <p id="errorText">
+          A modern browser with WebGL2 and float render target support is required.
+        </p>
+      </div>
+    </section>
+
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>
