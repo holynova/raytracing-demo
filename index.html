@@ -243,7 +243,7 @@
     <section class="hud">
       <h1 id="title">3D Ray Tracing Demo</h1>
       <p id="description">
-        The scene sits inside an open box at the center, with diffuse, metal, glass, emissive surfaces, and a standalone teapot. Dragging always orbits around the box center so the target stays in view.
+        The scene features diffuse, metal, glass, and emissive surfaces with a floating diamond at the center. Use the controls to toggle visibility of any object.
       </p>
       <div class="stats">
         <div class="card">
@@ -309,6 +309,19 @@
             <label class="toggle"><input id="whiteLightEnabled" type="checkbox" checked /><span id="whiteLightLabel">White</span></label>
             <label class="toggle"><input id="redLightEnabled" type="checkbox" checked /><span id="redLightLabel">Red</span></label>
             <label class="toggle"><input id="blueLightEnabled" type="checkbox" checked /><span id="blueLightLabel">Blue</span></label>
+          </div>
+        </div>
+
+        <div class="control">
+          <span class="control-head"><span id="objectTogglesLabel">Object Toggles</span><span id="objectTogglesValue">Show / Hide Scene Elements</span></span>
+          <div class="toggle-row" style="grid-template-columns: repeat(2, 1fr);">
+            <label class="toggle"><input id="roomVisible" type="checkbox" checked /><span id="roomLabel">Room</span></label>
+            <label class="toggle"><input id="diamondVisible" type="checkbox" checked /><span id="diamondLabel">Diamond</span></label>
+            <label class="toggle"><input id="redBoxVisible" type="checkbox" checked /><span id="redBoxLabel">Red Box</span></label>
+            <label class="toggle"><input id="metalBoxVisible" type="checkbox" checked /><span id="metalBoxLabel">Metal Box</span></label>
+            <label class="toggle"><input id="glassSphereVisible" type="checkbox" checked /><span id="glassSphereLabel">Glass Sphere</span></label>
+            <label class="toggle"><input id="goldSphereVisible" type="checkbox" checked /><span id="goldSphereLabel">Gold Sphere</span></label>
+            <label class="toggle"><input id="metalSphereVisible" type="checkbox" checked /><span id="metalSphereLabel">Metal Sphere</span></label>
           </div>
         </div>
 

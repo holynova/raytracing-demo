@@ -26,6 +26,15 @@ const uiElements = {
   qualityPresetLabel: document.getElementById("qualityPresetLabel"),
   footerText: document.getElementById("footerText"),
   errorTitle: document.getElementById("errorTitle"),
+  objectTogglesLabel: document.getElementById("objectTogglesLabel"),
+  objectTogglesValue: document.getElementById("objectTogglesValue"),
+  roomLabel: document.getElementById("roomLabel"),
+  diamondLabel: document.getElementById("diamondLabel"),
+  redBoxLabel: document.getElementById("redBoxLabel"),
+  metalBoxLabel: document.getElementById("metalBoxLabel"),
+  glassSphereLabel: document.getElementById("glassSphereLabel"),
+  goldSphereLabel: document.getElementById("goldSphereLabel"),
+  metalSphereLabel: document.getElementById("metalSphereLabel"),
 };
 const controlElements = {
   language: document.getElementById("language"),
@@ -51,6 +60,13 @@ const controlElements = {
   qualityPreset: document.getElementById("qualityPreset"),
   qualityPresetValue: document.getElementById("qualityPresetValue"),
   resetView: document.getElementById("resetView"),
+  roomVisible: document.getElementById("roomVisible"),
+  diamondVisible: document.getElementById("diamondVisible"),
+  redBoxVisible: document.getElementById("redBoxVisible"),
+  metalBoxVisible: document.getElementById("metalBoxVisible"),
+  glassSphereVisible: document.getElementById("glassSphereVisible"),
+  goldSphereVisible: document.getElementById("goldSphereVisible"),
+  metalSphereVisible: document.getElementById("metalSphereVisible"),
 };
 
 const translations = {
@@ -58,7 +74,7 @@ const translations = {
     htmlLang: "en",
     title: "3D Ray Tracing Demo",
     description:
-      "The scene sits inside an open box at the center, with diffuse, metal, glass, emissive surfaces, and a standalone teapot. Dragging always orbits around the box center so the target stays in view.",
+      "The scene features diffuse, metal, glass, and emissive surfaces with a floating diamond at the center. Use the controls to toggle visibility of any object.",
     samplesLabel: "Samples",
     controlsTitle: "Live Controls",
     languageLabel: "Language",
@@ -75,6 +91,15 @@ const translations = {
     whiteLightLabel: "White",
     redLightLabel: "Red",
     blueLightLabel: "Blue",
+    objectTogglesLabel: "Object Toggles",
+    objectTogglesValue: "Show / Hide Scene Elements",
+    roomLabel: "Room",
+    diamondLabel: "Diamond",
+    redBoxLabel: "Red Box",
+    metalBoxLabel: "Metal Box",
+    glassSphereLabel: "Glass Sphere",
+    goldSphereLabel: "Gold Sphere",
+    metalSphereLabel: "Metal Sphere",
     skyStrengthLabel: "Sky Strength",
     qualityPresetLabel: "Preset",
     resetView: "Reset View And Sampling",
@@ -91,7 +116,7 @@ const translations = {
     htmlLang: "zh-CN",
     title: "3D 光追材质 Demo",
     description:
-      "场景被收纳进画面中央的开放盒子中，包含漫反射、金属、玻璃、发光面和一个独立摆放的茶壶。拖动时相机会始终绕盒子中心旋转，不再轻易丢失目标。",
+      "场景包含漫反射、金属、玻璃、发光面以及一个浮空的钻石。使用调节面板可以控制每个物体的显示与隐藏。",
     samplesLabel: "样本数",
     controlsTitle: "实时参数",
     languageLabel: "语言",
@@ -108,6 +133,15 @@ const translations = {
     whiteLightLabel: "白",
     redLightLabel: "红",
     blueLightLabel: "蓝",
+    objectTogglesLabel: "物体开关",
+    objectTogglesValue: "显示 / 隐藏 场景元素",
+    roomLabel: "房间",
+    diamondLabel: "钻石",
+    redBoxLabel: "红木盒",
+    metalBoxLabel: "金属盒",
+    glassSphereLabel: "玻璃球",
+    goldSphereLabel: "金球",
+    metalSphereLabel: "拉丝金属球",
     skyStrengthLabel: "环境光强度",
     qualityPresetLabel: "预设",
     resetView: "重置视角与采样",
@@ -184,6 +218,13 @@ uniform float uSkyStrength;
 uniform float uWhiteLightEnabled;
 uniform float uRedLightEnabled;
 uniform float uBlueLightEnabled;
+uniform float uShowRoom;
+uniform float uShowDiamond;
+uniform float uShowRedBox;
+uniform float uShowMetalBox;
+uniform float uShowGlassSphere;
+uniform float uShowGoldSphere;
+uniform float uShowMetalSphere;
 
 #define MAX_BOUNCES 8
 #define FAR_CLIP 100.0
@@ -398,59 +439,49 @@ float sdEllipsoid(vec3 p, vec3 r) {
   return k0 * (k0 - 1.0) / k1;
 }
 
-float mapTeapot(vec3 p) {
-  vec3 q = p - vec3(0.65, -0.45, -6.15);
-
-  float body = sdEllipsoid(q - vec3(0.0, 0.22, 0.0), vec3(0.62, 0.48, 0.54));
-  float lid = sdRoundBox(q - vec3(0.0, 0.64, 0.0), vec3(0.28, 0.07, 0.28), 0.06);
-  float knob = sdSphere(q - vec3(0.0, 0.82, 0.0), 0.1);
-  float foot = sdTorus(q - vec3(0.0, -0.12, 0.0), vec2(0.28, 0.05));
-  float spout = sdCapsule(q, vec3(0.46, 0.34, 0.04), vec3(1.02, 0.52, 0.14), 0.09);
-  float spoutLip = sdCapsule(q, vec3(0.92, 0.52, 0.14), vec3(1.08, 0.48, 0.14), 0.06);
-  float handle = sdTorusX(q - vec3(-0.56, 0.32, 0.0), vec2(0.26, 0.07));
-
-  float teapot = opSmoothUnion(body, lid, 0.12);
-  teapot = opSmoothUnion(teapot, knob, 0.08);
-  teapot = opSmoothUnion(teapot, foot, 0.06);
-  teapot = opSmoothUnion(teapot, spout, 0.11);
-  teapot = opSmoothUnion(teapot, spoutLip, 0.06);
-  teapot = opSmoothUnion(teapot, handle, 0.09);
-  return teapot;
+float sdOctahedron(vec3 p, float s) {
+  p = abs(p);
+  return (p.x + p.y + p.z - s) * 0.57735027;
 }
 
-vec3 teapotNormal(vec3 p) {
-  vec2 e = vec2(0.0015, 0.0);
+float mapDiamond(vec3 p) {
+  vec3 q = p - vec3(0.0, 1.6, -4.85);
+  float t = uTime * 0.8;
+  mat2 rotY = mat2(cos(t), sin(t), -sin(t), cos(t));
+  q.xz *= rotY;
+  return sdOctahedron(q, 0.55);
+}
+
+vec3 diamondNormal(vec3 p) {
+  vec2 e = vec2(0.001, 0.0);
   return normalize(vec3(
-    mapTeapot(p + e.xyy) - mapTeapot(p - e.xyy),
-    mapTeapot(p + e.yxy) - mapTeapot(p - e.yxy),
-    mapTeapot(p + e.yyx) - mapTeapot(p - e.yyx)
+    mapDiamond(p + e.xyy) - mapDiamond(p - e.xyy),
+    mapDiamond(p + e.yxy) - mapDiamond(p - e.yxy),
+    mapDiamond(p + e.yyx) - mapDiamond(p - e.yyx)
   ));
 }
 
-bool hitTeapot(Ray ray, Material material, inout Hit bestHit) {
+bool hitDiamond(Ray ray, Material material, inout Hit bestHit) {
   float t = 0.0;
-  for (int i = 0; i < 96; i++) {
+  for (int i = 0; i < 80; i++) {
     vec3 pos = ray.origin + ray.dir * t;
-    float d = mapTeapot(pos);
+    float d = mapDiamond(pos);
     if (d < 0.001) {
       if (t < 0.001 || t > bestHit.t) {
         return false;
       }
-
       bestHit.t = t;
       bestHit.position = pos;
       bestHit.material = material;
-      vec3 outwardNormal = teapotNormal(pos);
+      vec3 outwardNormal = diamondNormal(pos);
       setFaceNormal(ray, outwardNormal, bestHit);
       return true;
     }
-
     t += d;
     if (t > bestHit.t || t > FAR_CLIP) {
       break;
     }
   }
-
   return false;
 }
 
@@ -479,23 +510,26 @@ bool traceScene(Ray ray, inout Hit bestHit) {
   Material brushedMetal = makeMaterial(vec3(0.86, 0.9, 0.94), vec3(0.0), 0.2, 1.0, 1.0, 0.0, 0.0);
   Material glass = makeMaterial(vec3(0.95, 0.98, 1.0), vec3(0.0), 0.0, 0.0, 1.45, 1.0, 0.0);
   Material matteRed = makeMaterial(vec3(0.84, 0.25, 0.2), vec3(0.0), 1.0, 0.0, 1.0, 0.0, 0.0);
-  Material teapotMat = makeMaterial(vec3(0.68, 0.9, 0.84), vec3(0.0), 0.08, 1.0, 1.0, 0.0, 0.0);
+  Material diamondMat = makeMaterial(vec3(0.9, 0.94, 1.0), vec3(0.0), 0.02, 0.1, 2.42, 1.0, 0.0);
   Material whiteLight = makeMaterial(vec3(1.0), vec3(13.0, 11.4, 9.8) * uLightIntensity / 13.0 * uWhiteLightEnabled, 0.0, 0.0, 1.0, 0.0, 0.0);
   Material redLight = makeMaterial(vec3(1.0), vec3(11.5, 1.2, 1.0) * uLightIntensity / 13.0 * uRedLightEnabled, 0.0, 0.0, 1.0, 0.0, 0.0);
   Material blueLight = makeMaterial(vec3(1.0), vec3(1.0, 1.8, 12.5) * uLightIntensity / 13.0 * uBlueLightEnabled, 0.0, 0.0, 1.0, 0.0, 0.0);
 
-  hit = hitAabb(ray, vec3(-3.4, -1.0, -7.4), vec3(3.4, -0.96, -2.1), floorMat, bestHit) || hit;
-  hit = hitAabb(ray, vec3(-3.4, 3.55, -7.4), vec3(3.4, 3.59, -2.1), ceilingMat, bestHit) || hit;
-  hit = hitAabb(ray, vec3(-3.4, -1.0, -7.4), vec3(-3.36, 3.55, -2.1), warmWall, bestHit) || hit;
-  hit = hitAabb(ray, vec3(3.36, -1.0, -7.4), vec3(3.4, 3.55, -2.1), coolWall, bestHit) || hit;
-  hit = hitAabb(ray, vec3(-3.4, -1.0, -7.4), vec3(3.4, 3.55, -7.36), backWall, bestHit) || hit;
+  if (uShowRoom > 0.5) {
+    hit = hitAabb(ray, vec3(-3.4, -1.0, -7.4), vec3(3.4, -0.96, -2.1), floorMat, bestHit) || hit;
+    hit = hitAabb(ray, vec3(-3.4, 3.55, -7.4), vec3(3.4, 3.59, -2.1), ceilingMat, bestHit) || hit;
+    hit = hitAabb(ray, vec3(-3.4, -1.0, -7.4), vec3(-3.36, 3.55, -2.1), warmWall, bestHit) || hit;
+    hit = hitAabb(ray, vec3(3.36, -1.0, -7.4), vec3(3.4, 3.55, -2.1), coolWall, bestHit) || hit;
+    hit = hitAabb(ray, vec3(-3.4, -1.0, -7.4), vec3(3.4, 3.55, -7.36), backWall, bestHit) || hit;
+  }
 
-  hit = hitAabb(ray, vec3(-1.95, -1.0, -6.3), vec3(-0.9, 0.68, -5.0), matteRed, bestHit) || hit;
-  hit = hitAabb(ray, vec3(1.1, -1.0, -4.95), vec3(2.4, -0.08, -3.45), brushedMetal, bestHit) || hit;
-  hit = hitSphere(ray, vec3(0.0, -0.08, -4.85), 0.88, glass, bestHit) || hit;
-  hit = hitSphere(ray, vec3(-2.05, -0.2, -3.85), 0.8, gold, bestHit) || hit;
-  hit = hitSphere(ray, vec3(2.05, -0.28, -5.85), 0.72, brushedMetal, bestHit) || hit;
-  hit = hitTeapot(ray, teapotMat, bestHit) || hit;
+  if (uShowRedBox > 0.5) hit = hitAabb(ray, vec3(-1.95, -1.0, -6.3), vec3(-0.9, 0.68, -5.0), matteRed, bestHit) || hit;
+  if (uShowMetalBox > 0.5) hit = hitAabb(ray, vec3(1.1, -1.0, -4.95), vec3(2.4, -0.08, -3.45), brushedMetal, bestHit) || hit;
+  if (uShowGlassSphere > 0.5) hit = hitSphere(ray, vec3(0.0, -0.08, -4.85), 0.88, glass, bestHit) || hit;
+  if (uShowGoldSphere > 0.5) hit = hitSphere(ray, vec3(-2.05, -0.2, -3.85), 0.8, gold, bestHit) || hit;
+  if (uShowMetalSphere > 0.5) hit = hitSphere(ray, vec3(2.05, -0.28, -5.85), 0.72, brushedMetal, bestHit) || hit;
+  if (uShowDiamond > 0.5) hit = hitDiamond(ray, diamondMat, bestHit) || hit;
+
   hit = hitAabb(ray, vec3(-0.92, 3.15, -5.55), vec3(0.92, 3.35, -4.15), whiteLight, bestHit) || hit;
   hit = hitAabb(ray, vec3(-3.18, 1.05, -6.15), vec3(-3.04, 2.5, -3.15), redLight, bestHit) || hit;
   hit = hitAabb(ray, vec3(3.04, 1.05, -6.15), vec3(3.18, 2.5, -3.15), blueLight, bestHit) || hit;
@@ -655,6 +689,13 @@ const tracerUniforms = {
   whiteLightEnabled: gl.getUniformLocation(tracerProgram, "uWhiteLightEnabled"),
   redLightEnabled: gl.getUniformLocation(tracerProgram, "uRedLightEnabled"),
   blueLightEnabled: gl.getUniformLocation(tracerProgram, "uBlueLightEnabled"),
+  showRoom: gl.getUniformLocation(tracerProgram, "uShowRoom"),
+  showDiamond: gl.getUniformLocation(tracerProgram, "uShowDiamond"),
+  showRedBox: gl.getUniformLocation(tracerProgram, "uShowRedBox"),
+  showMetalBox: gl.getUniformLocation(tracerProgram, "uShowMetalBox"),
+  showGlassSphere: gl.getUniformLocation(tracerProgram, "uShowGlassSphere"),
+  showGoldSphere: gl.getUniformLocation(tracerProgram, "uShowGoldSphere"),
+  showMetalSphere: gl.getUniformLocation(tracerProgram, "uShowMetalSphere"),
 };
 
 const blitUniforms = {
@@ -683,6 +724,13 @@ const state = {
   whiteLightEnabled: true,
   redLightEnabled: true,
   blueLightEnabled: true,
+  roomVisible: true,
+  diamondVisible: true,
+  redBoxVisible: true,
+  metalBoxVisible: true,
+  glassSphereVisible: true,
+  goldSphereVisible: true,
+  metalSphereVisible: true,
   language: "en",
   lastTime: performance.now(),
   fps: 0,
@@ -799,6 +847,15 @@ function applyLanguage() {
   uiElements.whiteLightLabel.textContent = tr.whiteLightLabel;
   uiElements.redLightLabel.textContent = tr.redLightLabel;
   uiElements.blueLightLabel.textContent = tr.blueLightLabel;
+  uiElements.objectTogglesLabel.textContent = tr.objectTogglesLabel;
+  uiElements.objectTogglesValue.textContent = tr.objectTogglesValue;
+  uiElements.roomLabel.textContent = tr.roomLabel;
+  uiElements.diamondLabel.textContent = tr.diamondLabel;
+  uiElements.redBoxLabel.textContent = tr.redBoxLabel;
+  uiElements.metalBoxLabel.textContent = tr.metalBoxLabel;
+  uiElements.glassSphereLabel.textContent = tr.glassSphereLabel;
+  uiElements.goldSphereLabel.textContent = tr.goldSphereLabel;
+  uiElements.metalSphereLabel.textContent = tr.metalSphereLabel;
   uiElements.skyStrengthLabel.textContent = tr.skyStrengthLabel;
   uiElements.qualityPresetLabel.textContent = tr.qualityPresetLabel;
   controlElements.resetView.textContent = tr.resetView;
@@ -923,6 +980,13 @@ function render(now) {
   gl.uniform1f(tracerUniforms.whiteLightEnabled, state.whiteLightEnabled ? 1 : 0);
   gl.uniform1f(tracerUniforms.redLightEnabled, state.redLightEnabled ? 1 : 0);
   gl.uniform1f(tracerUniforms.blueLightEnabled, state.blueLightEnabled ? 1 : 0);
+  gl.uniform1f(tracerUniforms.showRoom, state.roomVisible ? 1 : 0);
+  gl.uniform1f(tracerUniforms.showDiamond, state.diamondVisible ? 1 : 0);
+  gl.uniform1f(tracerUniforms.showRedBox, state.redBoxVisible ? 1 : 0);
+  gl.uniform1f(tracerUniforms.showMetalBox, state.metalBoxVisible ? 1 : 0);
+  gl.uniform1f(tracerUniforms.showGlassSphere, state.glassSphereVisible ? 1 : 0);
+  gl.uniform1f(tracerUniforms.showGoldSphere, state.goldSphereVisible ? 1 : 0);
+  gl.uniform1f(tracerUniforms.showMetalSphere, state.metalSphereVisible ? 1 : 0);
 
   state.sampleCarry += state.passesPerFrame * state.sampleSpeed;
   const passesThisFrame = Math.floor(state.sampleCarry);
@@ -1128,6 +1192,21 @@ function bindControls() {
     state.blueLightEnabled = event.target.checked;
     markDirty();
   });
+
+  const bindVisibility = (key, stateKey) => {
+    controlElements[key].addEventListener("change", (event) => {
+      state[stateKey] = event.target.checked;
+      markDirty();
+    });
+  };
+
+  bindVisibility("roomVisible", "roomVisible");
+  bindVisibility("diamondVisible", "diamondVisible");
+  bindVisibility("redBoxVisible", "redBoxVisible");
+  bindVisibility("metalBoxVisible", "metalBoxVisible");
+  bindVisibility("glassSphereVisible", "glassSphereVisible");
+  bindVisibility("goldSphereVisible", "goldSphereVisible");
+  bindVisibility("metalSphereVisible", "metalSphereVisible");
 
   controlElements.skyStrength.addEventListener("input", (event) => {
     state.skyStrength = Number(event.target.value);
