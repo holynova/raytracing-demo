@@ -1,4 +1,5 @@
 # 3D 光追材质 Demo
+[Live Demo](https://holynova.github.io/raytracing-demo/)
 
 一个零依赖的 WebGL2 路径追踪示例，直接在浏览器中展示不同材质的典型 3D 场景。
 
