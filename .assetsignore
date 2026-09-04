@@ -1,0 +1,6 @@
+.git/
+.github/
+.wrangler/
+.playwright-cli/
+README.md
+demo.png

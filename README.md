@@ -1,6 +1,8 @@
 # 3D 光追材质 Demo
 [Live Demo](https://holynova.github.io/raytracing-demo/)
 
+[Cloudflare Demo](https://raytracing-demo.xiaosang.cc/)
+
 一个零依赖的 WebGL2 路径追踪示例，直接在浏览器中展示不同材质的典型 3D 场景。
 
 ## 场景内容
@@ -14,7 +16,7 @@
 
 ## 运行方式
 
-直接启动一个静态文件服务器，然后打开 `index.html`。
+这是无构建、零依赖的根目录静态页面；Cloudflare 直接发布 `index.html`。本地可启动一个静态文件服务器，然后打开 `index.html`。
 
 例如：
 
