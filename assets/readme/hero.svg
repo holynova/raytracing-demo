@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="1200" height="360" viewBox="0 0 1200 360"
+     role="img" aria-labelledby="title desc">
+  <title id="title">3D 光追材质 Demo Raytracing Demo — 零依赖 WebGL2 路径追踪</title>
+  <desc id="desc">深蓝底标题：3D 光追材质 Demo；右侧是一张光线反弹示意图：顶灯发出光线，穿过玻璃球、落在棋盘地面、弹向金球，旁边还有红色方块。</desc>
+
+  <rect width="1200" height="360" rx="26" fill="#0a0f16"/>
+
+  <g id="deco" opacity="0.5">
+    <circle cx="706" cy="56" r="26" fill="#12203a"/>
+    <circle cx="64" cy="326" r="12" fill="#12203a"/>
+  </g>
+
+  <g id="title-block" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif">
+    <text x="56" y="62" font-size="19" letter-spacing="3" fill="#ffd166">WEBGL2 · PATH TRACING · 路径追踪</text>
+    <text x="56" y="130" font-size="54" font-weight="700" fill="#ecf3ff">3D 光追材质 Demo</text>
+    <text x="56" y="170" font-size="23" fill="#9ecfff">RAYTRACING DEMO — 零依赖 WebGL2 路径追踪</text>
+    <text x="56" y="206" font-size="19" fill="#97a6bc">漫反射、金属、玻璃、发光材质同场，逐帧累积降噪。</text>
+    <g id="chips" font-size="18" fill="#ecf3ff" text-anchor="middle">
+      <g><rect x="56" y="238" width="104" height="36" rx="18" fill="#16202e" stroke="#2a3a52" stroke-width="1.5"/><text x="108" y="262">WebGL2</text></g>
+      <g><rect x="172" y="238" width="104" height="36" rx="18" fill="#16202e" stroke="#2a3a52" stroke-width="1.5"/><text x="224" y="262">零依赖</text></g>
+      <g><rect x="288" y="238" width="122" height="36" rx="18" fill="#16202e" stroke="#2a3a52" stroke-width="1.5"/><text x="349" y="262">中英双语</text></g>
+      <g><rect x="422" y="238" width="158" height="36" rx="18" fill="#16202e" stroke="#2a3a52" stroke-width="1.5"/><text x="501" y="262">7 物件可开关</text></g>
+    </g>
+  </g>
+
+  <g id="ray-card" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif">
+    <rect x="800" y="44" width="344" height="272" rx="16" fill="#101826" stroke="#2a3a52" stroke-width="1.5"/>
+    <text x="828" y="80" font-size="18" fill="#97a6bc">光线反弹 · 最多 8 次</text>
+    <g id="diagram">
+      <rect x="900" y="96" width="170" height="12" rx="3" fill="#fff3c4"/>
+      <polyline points="985,108 918,206 962,282 1030,262" fill="none" stroke="#ffd166" stroke-width="2.5" stroke-linejoin="round"/>
+      <line x1="920" y1="108" x2="873" y2="240" stroke="#ffd166" stroke-width="2" opacity="0.7"/>
+      <polygon points="1030,262 1018,258 1022,270" fill="#ffd166"/>
+      <circle cx="940" cy="242" r="40" fill="#9ecfff" fill-opacity="0.14" stroke="#9ecfff" stroke-width="2"/>
+      <circle cx="926" cy="228" r="7" fill="#ffffff" opacity="0.85"/>
+      <circle cx="1050" cy="254" r="28" fill="#d4a437"/>
+      <circle cx="1040" cy="244" r="6" fill="#ffe9a8"/>
+      <rect x="852" y="240" width="42" height="42" rx="4" fill="#c0392b"/>
+      <g id="floor" fill="#2a3444">
+        <rect x="804" y="282" width="28" height="26"/>
+        <rect x="860" y="282" width="28" height="26"/>
+        <rect x="916" y="282" width="28" height="26"/>
+        <rect x="972" y="282" width="28" height="26"/>
+        <rect x="1028" y="282" width="28" height="26"/>
+        <rect x="1084" y="282" width="28" height="26"/>
+      </g>
+      <g id="floor2" fill="#1a2230">
+        <rect x="832" y="282" width="28" height="26"/>
+        <rect x="888" y="282" width="28" height="26"/>
+        <rect x="944" y="282" width="28" height="26"/>
+        <rect x="1000" y="282" width="28" height="26"/>
+        <rect x="1056" y="282" width="28" height="26"/>
+        <rect x="1112" y="282" width="28" height="26"/>
+      </g>
+    </g>
+  </g>
+</svg>
